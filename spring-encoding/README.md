@@ -9,9 +9,9 @@
 
 application.properties 에
 
-spring.http.encoding.charset=UTF-8
-spring.http.encoding.enabled=true
-spring.http.encoding.force=true
+spring.http.encoding.charset=UTF-8  
+spring.http.encoding.enabled=true  
+spring.http.encoding.force=true  
 
 를 추가하자. 
 
