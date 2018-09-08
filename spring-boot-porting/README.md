@@ -1,3 +1,7 @@
+브런치에는.. 정상적으로 서비스 전환 이후에 
+글 깔끔하게 정리해서 발행할 예정
+
+
 # 스프링 부트 전환하기
 레거시 스프링 프로젝트를, 스프링 부트로 전환하는 과정을 간단하게 정리한다. 사실 아직 진행하는 중이다. 부트 전환 경험자가 있다면 좋은 의견을 알려줬으면 좋겠다. 또한, 회사 소스는 보안상 외부에 글로 남길수가 없다. 아래 코드는 회사소스랑 상관 없이 필자가 따로 작성한 코드이다. 
 
@@ -92,8 +96,30 @@ https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-
 1. mvnrepository 화면
 2. intellij 에서 추가된 화면
 
-디펜던시만 추가한다고 끝이 아니다. 만약... org.codehaus 패키지를 사용한다면, com.fasterxml.jackson 으로 모두 변경해야 한다. 참고로, 각 클래스의 패키지 경로도 일부 바뀌었다. 
+디펜던시만 추가한다고 끝이 아니다. 만약... org.codehaus 패키지를 사용한다면, com.fasterxml.jackson 으로 모두 변경해야 한다. 참고로, 각 클래스의 패키지 경로도 일부 바뀌었다. 필자는 아래와 같은 패키지를 모두 변경하였다. 
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+-->
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import org.codehaus.jackson.annotate.JsonProperty;
+-->
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.codehaus.jackson.map.ObjectMapper;
+-->
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.codehaus.jackson.map.util.JSONPObject;
+-->
+import com.fasterxml.jackson.databind.util.JSONPObject;
+
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+-->
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+등등..전부 기억나지는 않지만, 신규 패키지로 변경한 이후에 오류가 발생하지는 않았다. 아직까지는...
 
 #### 설정 파일 import  및 초기 실행 클래스 구현 
 
@@ -118,4 +144,64 @@ public class DemoApplication {
 
 ## 2단계. XML 설정--> Java 설정으로 하나씩 전환하기
 
+#### RestTemplate.xml
 
+아래와 같이 restTemplate 을 생성하는 빈 설정을 자바 컨피그로 바꾸자. 
+````xml
+<bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
+생략
+````
+
+아래와 같이 자바 컨피그 설정으로 변경하면 된다. 
+
+````java
+@Configuration
+public class RestTemplateConfig {
+
+	@Bean
+	public RestTemplate restTemplate() {
+		return new RestTemplate(clientHttpRequestFactory());
+	}
+
+	private ClientHttpRequestFactory clientHttpRequestFactory() {
+		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+		factory.setReadTimeout(60000);
+		factory.setConnectTimeout(60000);
+
+		HttpClient httpClient = HttpClientBuilder.create()
+			.setMaxConnTotal(100)
+			.setMaxConnPerRoute(20)
+			.build();
+
+		factory.setHttpClient(httpClient);
+		return factory;
+	}
+}
+
+//조금 더 깔끔하게 정리하면 아래와 같이 가능하다.
+@Configuration
+public class RestTemplateConfig {
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate() {{
+            setRequestFactory(new HttpComponentsClientHttpRequestFactory(HttpClientBuilder
+                    .create()
+                    .setConnectionManager(new PoolingHttpClientConnectionManager() {{
+                        setDefaultMaxPerRoute(50);
+                        setMaxTotal(200);
+                    }}).build()));
+        }};
+    }
+}
+````
+
+#### DataSource.xml
+아직. 변경하지 못했다. XML을 import 하는 방식으로 유지하면서, 추후에 진행하기로 한다. 
+
+#### Hibernate.xml
+아직. 변경하지 못했다. XML을 import 하는 방식으로 유지하면서, 추후에 진행하기로 한다. 
+
+
+## 남은 작업 들
+
+검토 중...
