@@ -1,0 +1,17 @@
+management:
+  metrics:
+    export:
+      influx:
+        enabled: true
+        db: actuator
+        uri: http://influxdb:8086
+#        user-name:
+#        password:
+        connect-timeout: 1s
+        read-timeout: 10s
+        auto-create-db: true
+        step: 1m
+        num-threads: 2
+        consistency: one
+        compressed: true
+        batch-size: 10000
