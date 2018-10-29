@@ -75,6 +75,31 @@
 
 > 스프링 부트는 디펜던시를 자동으로 추가해준다. 그러므로, 기존의 설정은 깔끔하게 지워버리자.
 
+
+#### spring-boot-starter-parent 추가로 인한 불필요한 설정 제거
+
+만약 기존 설정에 아래와 같이 설정되어 있다면, 지워도 된다.
+````xml
+<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+````
+
+아래 링크를 참고하자.
+https://github.com/spring-projects/spring-boot/blob/v1.5.14.RELEASE/spring-boot-starters/spring-boot-starter-parent/pom.xml#L22
+
+
+spring-boot-starter-parent 에 이미 선언이 되어있기 때문에 굳이 명시적으로 설정하지 않아도 된다. 물론, 명시적으로 써주는 것이 프로젝트 운영상 좋을 수는 있지만...어쩃든 spring-boot-starter-parent 에 설정된 정보를 미리 이해는 해야 한다. 
+
+#### 스프링 버전에 맞게 스프링 사용 클래스 변경
+예를 들어서, 스프링 3 버전에서 MappingJacksonHttpMessageConverter 를 사용하고 있었다면, 스프링 4 버전에서는 신규 클래스인 MappingJackson2HttpMessageConverter 를 사용해야 한다. 스프링 버전에 맞게 코드를 수정하자. 
+
+````java
+기존
+<bean id=""  class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+변경
+<bean id=""  class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+````
+
+
 #### Jackson 라이브러리 업그레이드
 아마도 대부분의 프로젝트에서 jackson 라이브러리를 사용하고 있었을 것이다. 사용하지 않는다면 작업할 필요는 없다. pom.xml 에서 jackson 라이브러리 디펜던시를 지우자.
 
